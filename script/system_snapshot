@@ -1,0 +1,39 @@
+#!/bin/bash
+
+backup(){
+  snapshot_name=${1}
+  file_name="${2}_`date +"%Y%m%d-%H%M%S"`.tar.gz"
+  backup_path=${3}
+  filter_paths=${@:4}
+  filter_all=''
+  for path in $filter_paths;
+  do
+    filter_all="${filter_all} --exclude=${path} "
+  done
+  echo "开始备份 ${backup_path} 目录,忽略目录为 ${filter_paths}"
+  #tar -g ${snapshot_name} -cvpzf ${file_name} ${filter_all} ${backup_path}
+  tar -g ${snapshot_name} -zcpf ${file_name} ${filter_all} ${backup_path}
+  # echo "tar -g ${snapshot_name} -zcpf ${file_name} ${filter_all} ${backup_path}"
+  echo "${backup_path} 目录备份完成,备份文件绝对路径${file_name}"
+}
+
+restore(){
+  snapshot_name=${1}
+  file_name=${2}
+  restore_path=${3}
+  restore_dirs=${@:4}
+  restore_all=''
+  for dir in $restore_dirs;
+  do
+    restore_all="${restore_all} ${dir} "
+  done
+  echo "开始恢复 ${restore_path} 目录,恢复列表为 ${restore_dirs}"
+  tar -g ${snapshot_name} -zxpf ${file_name} -C ${restore_path} ${restore_all}
+  rm -rf ${file_name}
+  #echo "tar -g ${snapshot_name} -zxpf ${file_name} -C ${restore_path} ${restore_all}"
+  echo "备份文件 ${file_name} 恢复完成"
+  restorecon -Rv ${restore_path}
+  echo "恢复目录${restore_path}SELinux文件属性恢复完成,重启生效"
+}
+
+$@
