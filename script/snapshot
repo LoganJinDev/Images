@@ -48,8 +48,8 @@ copy(){
 clear(){
   path=${1}
   days=${2}
-  find "$path" -mtime +${days} -type f -name "*.tar.gz" -delete
+  find "${path}" -mtime +${days} -type f -name "*.tar.gz" -delete
+  echo "The files in the ${path} directory have been cleared ${days} days ago."
 }
-
 
 $@
