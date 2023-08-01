@@ -37,10 +37,11 @@ restore(){
 }
 
 copy(){
-  local_host=${1}
+  local_path=${1}
   target_host=${2}
-  echo "The current time is `date +"%Y%m%d-%H%M%S"`. Copy the local /data/backup/localhost/* directory to \"$target_host\" /data/backup/$local_host/ directory on the server."
-  rsync -avzu --progress /data/backup/localhost/* root@$target_host:/data/backup/$local_host/
+  target_path=${3}
+  echo "The current time is `date +"%Y%m%d-%H%M%S"`. Copy the local ${local_path} directory to \"$target_host\" $target_path directory on the server."
+  rsync -avzu --progress "${local_path}" root@"$target_host":"$target_path"
   echo "Copy complete, current time is `date +"%Y%m%d-%H%M%S"`"
 }
 
@@ -49,5 +50,6 @@ clear(){
   days=${2}
   find "$path" -mtime +${days} -type f -name "*.tar.gz" -delete
 }
+
 
 $@
