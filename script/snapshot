@@ -1,4 +1,8 @@
 #!/bin/bash
+# @Time    : 2023/08/01 19:17
+# @Author  : Logan.Jin | www.loganjin.cn
+# @FileName: shapshot
+# @Annotation: 转载请保留来源
 
 backup(){
   snapshot_name=${1}
@@ -11,9 +15,7 @@ backup(){
     filter_all="${filter_all} --exclude=${path} "
   done
   echo "The current time is `date +"%Y%m%d-%H%M%S"`.Start to backup the ${backup_path} directory, ignoring ${filter_paths}."
-  #tar -g ${snapshot_name} -cvpzf ${file_name} ${filter_all} ${backup_path}
   tar -g ${snapshot_name} -zcpf ${file_name} ${filter_all} ${backup_path}
-  # echo "tar -g ${snapshot_name} -zcpf ${file_name} ${filter_all} ${backup_path}"
   echo "${backup_path} directory backup is complete, backup file absolute path ${file_name}. current time is `date +"%Y%m%d-%H%M%S"`."
 }
 
@@ -30,7 +32,6 @@ restore(){
   echo "The current time is `date +"%Y%m%d-%H%M%S"`.The ${restore_path} directory starts to be restored,The restore list is ${restore_dirs}."
   tar -g ${snapshot_name} -zxpf ${file_name} -C ${restore_path} ${restore_all}
   rm -rf ${file_name}
-  #echo "tar -g ${snapshot_name} -zxpf ${file_name} -C ${restore_path} ${restore_all}"
   echo "Backup file ${file_name} is restored."
   restorecon -Rv ${restore_path}
   echo "Restore directory ${restore_path}SELinux file properties are restored, restart takes effect. current time is `date +"%Y%m%d-%H%M%S"`."
