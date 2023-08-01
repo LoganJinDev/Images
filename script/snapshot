@@ -47,7 +47,7 @@ copy(){
 clear(){
   path=${1}
   days=${2}
-# find /data/backup/localhost/ -mtime +180 -type f -name "*" -exec rm -rf {} \;
   find "$path" -mtime +${days} -type f -name "*.tar.gz" -delete
 }
+
 $@
