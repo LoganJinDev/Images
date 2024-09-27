@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# 设置Dockerfile存储路径
+OUTPUT_DIR=${1:-.}
+DOCKERFILE="$OUTPUT_DIR/Dockerfile"
+
+# 检查并创建输出目录
+if [ ! -d "$OUTPUT_DIR" ]; then
+    mkdir -p "$OUTPUT_DIR"
+    echo "创建目录: $OUTPUT_DIR"
+fi
+
+# 清空Dockerfile内容
+> "$DOCKERFILE"
+
+
+# 转义特殊字符的函数
+escape() {
+    echo "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\$/\\$/g'
+}
+
+
+# 检查并添加ARG指令
+#if [ -n "$ARG" ]; then
+#    echo "ARG $ARG" >> "$DOCKERFILE"
+#fi
+if [ -n "$ARG" ]; then
+    IFS=',' read -ra ARG_VALUES <<< "$ARG"
+    for value in "${ARG_VALUES[@]}"; do
+        echo "ARG $value" >> "$DOCKERFILE"
+    done
+fi
+
+# 检查并添加FROM指令
+if [ -n "$FROM" ]; then
+    echo "FROM $FROM" >> "$DOCKERFILE"
+fi
+
+# 检查并添加MAINTAINER指令
+if [ -n "$MAINTAINER" ]; then
+    echo "MAINTAINER $MAINTAINER" >> "$DOCKERFILE"
+fi
+
+# 检查并添加LABEL指令
+if [ -n "$LABEL" ]; then
+    echo "LABEL $LABEL" >> "$DOCKERFILE"
+fi
+
+# 检查并添加ENV指令
+if [ -n "$ENV" ]; then
+    IFS=',' read -ra ENV_VALUES <<< "$ENV"
+    for value in "${ENV_VALUES[@]}"; do
+        echo "ENV $value" >> "$DOCKERFILE"
+    done
+fi
+
+# 检查并添加WORKDIR指令
+if [ -n "$WORKDIR" ]; then
+    echo "WORKDIR $WORKDIR" >> "$DOCKERFILE"
+fi
+
+# 检查并添加COPY指令
+if [ -n "$COPY" ]; then
+    IFS=',' read -ra COPY_VALUES <<< "$COPY"
+    for value in "${COPY_VALUES[@]}"; do
+        echo "COPY $value" >> "$DOCKERFILE"
+    done
+fi
+
+# 检查并添加ADD指令
+if [ -n "$ADD" ]; then
+    IFS=',' read -ra ADD_VALUES <<< "$ADD"
+    for value in "${ADD_VALUES[@]}"; do
+        echo "ADD $value" >> "$DOCKERFILE"
+    done
+fi
+
+# 检查并添加RUN指令
+if [ -n "$RUN" ]; then
+    IFS=',' read -ra RUN_VALUES <<< "$RUN"
+    for value in "${RUN_VALUES[@]}"; do
+        echo "RUN $value" >> "$DOCKERFILE"
+    done
+fi
+
+# 检查并添加EXPOSE指令
+if [ -n "$EXPOSE" ]; then
+    IFS=',' read -ra EXPOSE_VALUES <<< "$EXPOSE"
+    for value in "${EXPOSE_VALUES[@]}"; do
+        echo "EXPOSE $value" >> "$DOCKERFILE"
+    done
+fi
+
+# 检查并添加VOLUME指令
+if [ -n "$VOLUME" ]; then
+    IFS=',' read -ra VOLUME_VALUES <<< "$VOLUME"
+    for value in "${VOLUME_VALUES[@]}"; do
+        echo "VOLUME $value" >> "$DOCKERFILE"
+    done
+fi
+
+# 检查并添加USER指令
+if [ -n "$DOCKER_USER" ]; then
+    echo "USER $DOCKER_USER" >> "$DOCKERFILE"
+fi
+
+# 检查并添加CMD指令
+if [ -n "$CMD" ]; then
+#    echo "CMD [$CMD]" >> "$DOCKERFILE"
+    echo "CMD $CMD" >> "$DOCKERFILE"
+fi
+
+# 检查并添加ENTRYPOINT指令
+if [ -n "$ENTRYPOINT" ]; then
+#    echo "ENTRYPOINT [$ENTRYPOINT]" >> "$DOCKERFILE"
+    echo "ENTRYPOINT $ENTRYPOINT" >> "$DOCKERFILE"
+fi
+
+# 打印生成的Dockerfile
+echo "生成的Dockerfile内容："
+cat "$DOCKERFILE"
