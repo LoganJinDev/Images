@@ -130,23 +130,23 @@ fi
 echo "生成的Dockerfile内容："
 cat "$DOCKERFILE"
 
-
 # 多个SECRET合并
-if [ $SECRET_MORE = "true" ]; then
+if [ -n "$SECRET_MORE" ] && [ $SECRET_MORE = "true" ]; then
+
   # KANIKO_CONFIG_PATH不存在则创建
   KANIKO_CONFIG_PATH="/kaniko/.docker"
-  if [ ! -n "$KANIKO_CONFIG_PATH" ]; then
-      mkdir -p $KANIKO_CONFIG_PATH
+  if [ ! -f "$KANIKO_CONFIG_PATH" ]; then
+    mkdir -p $KANIKO_CONFIG_PATH
   fi
-  
-  # 合并配置文件
-  jq -s 'reduce .[] as $item ({}; . * $item)' $KANIKO_CONFIG_PATH/*.json > $KANIKO_CONFIG_PATH/config.json
-#  jq -s '.[0] * .[1]' /kaniko/.docker/transsion-config.json /kaniko/.docker/aliyun-config.json > /kaniko/.docker/config.json
-  if [ $? -eq 0 ]; then
-    CONFIG_LIST=`find $KANIKO_CONFIG_PATH -name *-config.json`
+
+  # 判断目录是否包含*.json
+  # ! -name "config.json" 排除config.json文件
+  if find "$KANIKO_CONFIG_PATH" -maxdepth 1 -name "*.json" ! -name "config.json" | grep -q .; then
+    # 合并配置文件
+    jq -s 'reduce .[] as $item ({}; . * $item)' $KANIKO_CONFIG_PATH/*.json > $KANIKO_CONFIG_PATH/config.json
+
+    # 已合并的配置文件
+    CONFIG_LIST=`find "$KANIKO_CONFIG_PATH" -maxdepth 1 -name "*.json" ! -name "config.json" -exec basename {} \;`
     echo "配置文件 ${CONFIG_LIST} 合并完成"
-  else
-    echo "未挂载任何配置文件"
   fi
-  
 fi
