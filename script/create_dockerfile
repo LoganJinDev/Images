@@ -9,7 +9,7 @@ else
     OUTPUT_DIR=${1:-.}
     DOCKERFILE="$OUTPUT_DIR/Dockerfile"
 fi
-echo $DOCKERFILE
+#echo $DOCKERFILE
 
 #OUTPUT_DIR=${1:-.}
 #DOCKERFILE="$OUTPUT_DIR/Dockerfile"
@@ -129,3 +129,23 @@ fi
 # 打印生成的Dockerfile
 echo "生成的Dockerfile内容："
 cat "$DOCKERFILE"
+
+
+KANIKO_CONFIG_PATH="/kaniko/.docker"
+
+# KANIKO_CONFIG_PATH不存在则创建
+if [ ! -n "$KANIKO_CONFIG_PATH" ]; then
+    mkdir -p $KANIKO_CONFIG_PATH
+fi
+
+# 多个SECRET合并
+if [ $SECRET_MORE = "true" ]; then
+  jq -s 'reduce .[] as $item ({}; . * $item)' $KANIKO_CONFIG_PATH/*.json > $KANIKO_CONFIG_PATH/config.json
+#  jq -s '.[0] * .[1]' /kaniko/.docker/transsion-config.json /kaniko/.docker/aliyun-config.json > /kaniko/.docker/config.json
+  if [ $? -eq 0 ]; then
+    CONFIG_LIST=`find $KANIKO_CONFIG_PATH -name *-config.json`
+    echo "配置文件 ${CONFIG_LIST} 合并完成"
+  else
+    echo "未挂载任何配置文件"
+  fi
+fi
