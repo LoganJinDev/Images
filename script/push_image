@@ -27,6 +27,6 @@ if [ -n "$LOCAL_IMAGE" ] && [ -n "$REMOTE_IMAGE" ]; then
   else
     echo "After waiting for ${TIME_OUT} seconds, no $LOCAL_IMAGE file is generated. Exit the program."
   fi
-else
-  echo "No environment variable is set for LOCAL_IMAGE or REMOTE_IMAGE."
+#else
+#  echo "No environment variable is set for LOCAL_IMAGE or REMOTE_IMAGE."
 fi
