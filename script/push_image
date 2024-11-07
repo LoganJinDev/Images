@@ -5,24 +5,28 @@
 : "${TIME_OUT:=300}"
 TOTAL_WAIT=0
 
-while [ ! -f "$LOCAL_IMAGE" ] && [ $TOTAL_WAIT -lt $TIME_OUT ]; do
+# 判断环境变量是否设置
+if [ -n "$LOCAL_IMAGE" ] && [ -n "$REMOTE_IMAGE" ]; then
+
+  # 等待生成镜像文件
+  while [ ! -f "$LOCAL_IMAGE" ] && [ $TOTAL_WAIT -lt $TIME_OUT ]; do
     echo "Wait for the $LOCAL_IMAGE file to be generated..."
     sleep $SLEEP_TIME
     TOTAL_WAIT=$((TOTAL_WAIT + SLEEP_TIME))
-done
+  done
 
-if [ -f "$LOCAL_IMAGE" ]; then
-    if [ -n "$LOCAL_IMAGE" ] && [ -n "$REMOTE_IMAGE" ]; then
-        # 检查 skopeo 命令是否存在
-        if command -v skopeo >/dev/null 2>&1 || which skopeo >/dev/null 2>&1; then
-            echo "The skopeo copy command starts..."
-            skopeo copy docker-archive:$LOCAL_IMAGE docker://$REMOTE_IMAGE --tls-verify=false
-        else
-            echo "The skopeo command is not installed. Install skopeo and try again."
-        fi
+  # 判断镜像文件是否存在
+  if [ -f "$LOCAL_IMAGE" ]; then
+    # 检查 skopeo 命令是否存在
+    if command -v skopeo >/dev/null 2>&1 || which skopeo >/dev/null 2>&1; then
+        echo "The skopeo copy command starts..."
+        skopeo copy docker-archive:$LOCAL_IMAGE docker://$REMOTE_IMAGE --tls-verify=false
     else
-        echo "No environment variable is set for LOCAL_IMAGE or REMOTE_IMAGE."
+        echo "The skopeo command is not installed. Install skopeo and try again."
     fi
-else
+  else
     echo "After waiting for ${TIME_OUT} seconds, no $LOCAL_IMAGE file is generated. Exit the program."
+  fi
+else
+  echo "No environment variable is set for LOCAL_IMAGE or REMOTE_IMAGE."
 fi
