@@ -1,8 +1,5 @@
 #!/bin/bash
 
-export REGISTRY_AUTHS='deccr.ccs.tencentyun.com,MTAwMDMzODA1NDgyOlRyYW5zc2lvbjIwMjM=|deccr.ccs.tencentyun.com/crawler-develop,100005566872,logan19930609'
-export SECRET_MORE=
-
 # 配置文件路径
 KANIKO_CONFIG_PATH=${KANIKO_CONFIG_PATH:-"/kaniko/.docker"}
 CONFIG_FILE="$KANIKO_CONFIG_PATH/config.json"
@@ -56,7 +53,6 @@ else
       echo "Invalid format in REGISTRY_AUTHS entry: $AUTH_ENTRY"
       continue
     fi
-
     # 使用jq添加或更新auth信息
     jq --arg registry "$REGISTRY" --arg auth "$AUTH" \
       '.auths[$registry] = { "auth": $auth }' "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
@@ -64,5 +60,3 @@ else
 
   echo "Docker authentication information has been updated in $CONFIG_FILE."
 fi
-
-
