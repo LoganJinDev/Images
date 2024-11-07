@@ -1,0 +1,68 @@
+#!/bin/bash
+
+export REGISTRY_AUTHS='deccr.ccs.tencentyun.com,MTAwMDMzODA1NDgyOlRyYW5zc2lvbjIwMjM=|deccr.ccs.tencentyun.com/crawler-develop,100005566872,logan19930609'
+export SECRET_MORE=
+
+# 配置文件路径
+KANIKO_CONFIG_PATH=${KANIKO_CONFIG_PATH:-"/kaniko/.docker"}
+CONFIG_FILE="$KANIKO_CONFIG_PATH/config.json"
+
+# 检查并创建KANIKO_CONFIG_PATH目录
+if [ ! -d "$KANIKO_CONFIG_PATH" ]; then
+  mkdir -p "$KANIKO_CONFIG_PATH"
+fi
+
+# 如果config.json文件不存在，初始化文件结构
+if [ ! -f "$CONFIG_FILE" ]; then
+  echo '{"auths":{}}' > "$CONFIG_FILE"
+fi
+
+# 合并多个JSON文件到config.json（如果SECRET_MORE为true）
+if [ -n "$SECRET_MORE" ] && [ "$SECRET_MORE" = "true" ]; then
+  # 查找KANIKO_CONFIG_PATH中的所有*.json文件（排除config.json）
+  if find "$KANIKO_CONFIG_PATH" -maxdepth 1 -name "*.json" ! -name "config.json" | grep -q .; then
+    # 使用jq合并JSON文件
+    jq -s 'reduce .[] as $item ({}; . * $item)' "$KANIKO_CONFIG_PATH"/*.json > "$CONFIG_FILE"
+
+    # 列出已合并的配置文件
+    CONFIG_LIST=$(find "$KANIKO_CONFIG_PATH" -maxdepth 1 -name "*.json" ! -name "config.json" -exec basename {} \; | paste -sd ',')
+    echo "The configuration file ${CONFIG_LIST} has been merged into ${CONFIG_FILE}"
+
+  fi
+fi
+
+# 检查REGISTRY_AUTHS是否存在
+if [ -z "$REGISTRY_AUTHS" ]; then
+  echo "REGISTRY_AUTHS environment variable is not set."
+  exit 1
+else
+  # 逐个处理REGISTRY_AUTHS的条目
+  IFS='|' read -ra AUTH_ENTRIES <<< "$REGISTRY_AUTHS"
+  for AUTH_ENTRY in "${AUTH_ENTRIES[@]}"; do
+    # 分割每个entry, 检查其格式
+    IFS=',' read -ra AUTH_PARTS <<< "$AUTH_ENTRY"
+
+    if [ ${#AUTH_PARTS[@]} -eq 2 ]; then
+      # 处理 base64 格式
+      REGISTRY="${AUTH_PARTS[0]}"
+      AUTH="${AUTH_PARTS[1]}"
+    elif [ ${#AUTH_PARTS[@]} -eq 3 ]; then
+      # 处理 用户名,密码 格式
+      REGISTRY="${AUTH_PARTS[0]}"
+      USERNAME="${AUTH_PARTS[1]}"
+      PASSWORD="${AUTH_PARTS[2]}"
+      AUTH=$(echo -n "$USERNAME:$PASSWORD" | base64)
+    else
+      echo "Invalid format in REGISTRY_AUTHS entry: $AUTH_ENTRY"
+      continue
+    fi
+
+    # 使用jq添加或更新auth信息
+    jq --arg registry "$REGISTRY" --arg auth "$AUTH" \
+      '.auths[$registry] = { "auth": $auth }' "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+  done
+
+  echo "Docker authentication information has been updated in $CONFIG_FILE."
+fi
+
+
