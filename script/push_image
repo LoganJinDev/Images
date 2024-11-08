@@ -31,7 +31,7 @@ if [ -n "$LOCAL_IMAGE" ] && [ -n "$REMOTE_IMAGE" ]; then
   if [ -f "$LOCAL_IMAGE" ]; then
     # 检查 skopeo 命令是否存在
     if command -v skopeo >/dev/null 2>&1 || which skopeo >/dev/null 2>&1; then
-      
+        sleep 2
         echo "The skopeo copy command starts..."
         #skopeo copy docker-archive:$LOCAL_IMAGE docker://$REMOTE_IMAGE --tls-verify=false
         # --tls-verify=false已弃用 改为 --src-tls-verify=false --dest-tls-verify=false
