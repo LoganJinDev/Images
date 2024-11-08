@@ -21,7 +21,8 @@ fi
 if [ -n "$LOCAL_IMAGE" ] && [ -n "$REMOTE_IMAGE" ]; then
 
   # 等待生成镜像文件
-  while [ ! -f "$LOCAL_IMAGE" ] && [ $TOTAL_WAIT -lt $TIME_OUT ]; do
+  #while [ ! -f "$LOCAL_IMAGE" ] && [ $TOTAL_WAIT -lt $TIME_OUT ]; do
+  while [ $TOTAL_WAIT -lt $TIME_OUT ] && ([ ! -f "$LOCAL_IMAGE" ] || [ ! -s "$LOCAL_IMAGE" ] || ! tar -tf "$LOCAL_IMAGE" >/dev/null 2>&1); do
     echo "Wait for the $LOCAL_IMAGE file to be generated..."
     sleep $SLEEP_TIME
     TOTAL_WAIT=$((TOTAL_WAIT + SLEEP_TIME))
@@ -31,7 +32,6 @@ if [ -n "$LOCAL_IMAGE" ] && [ -n "$REMOTE_IMAGE" ]; then
   if [ -f "$LOCAL_IMAGE" ]; then
     # 检查 skopeo 命令是否存在
     if command -v skopeo >/dev/null 2>&1 || which skopeo >/dev/null 2>&1; then
-        sleep 2
         echo "The skopeo copy command starts..."
         #skopeo copy docker-archive:$LOCAL_IMAGE docker://$REMOTE_IMAGE --tls-verify=false
         # --tls-verify=false已弃用 改为 --src-tls-verify=false --dest-tls-verify=false
