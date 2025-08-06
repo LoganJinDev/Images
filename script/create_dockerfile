@@ -105,14 +105,19 @@ if [ -n "$DOCKER_USER" ]; then
     echo "USER $DOCKER_USER" >> "$DOCKERFILE"
 fi
 
+# 检查并添加ENTRYPOINT指令
+if [ -n "$ENTRYPOINT" ]; then
+    echo "ENTRYPOINT $ENTRYPOINT" >> "$DOCKERFILE"
+fi
+
 # 检查并添加CMD指令
 if [ -n "$CMD" ]; then
     echo "CMD $CMD" >> "$DOCKERFILE"
 fi
 
-# 检查并添加ENTRYPOINT指令
-if [ -n "$ENTRYPOINT" ]; then
-    echo "ENTRYPOINT $ENTRYPOINT" >> "$DOCKERFILE"
+# 检查DOCKERFILE_LINK是否存在 若存在则下载
+if [ -n "$DOCKERFILE_LINK" ]; then
+    wget -O $DOCKERFILE $DOCKERFILE_LINK
 fi
 
 # 若已生成Dockerfile文件, 且内容不为空, 则打印Dockerfile内容
